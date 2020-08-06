@@ -1,5 +1,6 @@
 import os
 import ast
+import re
 
 import dotenv
 import discord
@@ -9,30 +10,36 @@ from RestrictedPython.PrintCollector import PrintCollector
 
 dotenv.load_dotenv()
 
-@commands.command()
-async def interpret(ctx, code):
-    code = code.replace("`", "")
+def interpret(code):
     code += "\nresults = printed"
-    try:
-        print(code)
-        byte_code = compile_restricted(
-            code,
-            filename="<string>",
-            mode="exec",
-        )
-        data = { "_print_": PrintCollector, "__builtins__": safe_builtins }
-        exec(byte_code, data, None)
-        await ctx.send("```{}```".format(data["results"]))
-    except SyntaxError as e:
-        await ctx.send("syntax error: {}".format(e))
+    byte_code = compile_restricted(
+        code,
+        filename="<string>",
+        mode="exec",
+    )
+    data = { "_print_": PrintCollector, "__builtins__": safe_builtins }
+    exec(byte_code, data, None)
+    return data["results"]
 
-class InterpreterBot(commands.Bot):
-    def __init__(self):
-        super().__init__(command_prefix="~")
-        self.add_command(interpret)
+class InterpreterBot(discord.Client):
+    async def on_ready(self):
+        print("logged in as {}".format(self.user))
+    
+    async def on_message(self, message):
+        command_str = ">>"
+        content = message.content
+        if content.startswith(command_str):
+            source = re.sub(r"{} ?".format(command_str), "", content, 1)
+            source = re.sub(r"(?:^\"?`(?:`{2}(?:[a-zA-Z+]*)?)?\n?|\n?`(?:`{2})?\"?$)", "", source)
+            print("Executed {}".format(repr(source)))
+            await message.channel.send("```{}```".format(interpret(source) or "(no output to stdout)"))
     
     def run(self):
-        super().run(os.getenv("TOKEN"))
+        token = os.getenv("TOKEN")
+        if token:
+            super().run(token)
+        else:
+            raise EnvironmentError("TOKEN environment variable doesn't exist")
 
 if __name__ == "__main__":
     bot = InterpreterBot()
