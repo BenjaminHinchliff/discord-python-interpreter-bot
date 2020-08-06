@@ -1,6 +1,8 @@
 import os
 import ast
 import re
+import multiprocess
+from pathos.multiprocessing import ProcessPool
 
 import dotenv
 import discord
@@ -30,6 +32,10 @@ def interpret(code):
     return data["results"]
 
 class InterpreterBot(discord.Client):
+    def __init__(self):
+        super().__init__()
+        self.pool = ProcessPool(nodes=4)
+
     async def on_ready(self):
         print("logged in as {}".format(self.user))
     
@@ -40,7 +46,16 @@ class InterpreterBot(discord.Client):
             source = re.sub(r"{} ?".format(command_str), "", content, 1)
             source = re.sub(r"(?:^\"?`(?:`{2}(?:[a-zA-Z+]*)?)?\n?|\n?`(?:`{2})?\"?$)", "", source)
             print("Executed {}".format(repr(source)))
-            await message.channel.send("```{}```".format(interpret(source) or "(no output to stdout)"))
+            sent = await message.channel.send("running code...")
+            result = self.pool.apipe(interpret, source)
+            output = None
+            try:
+                output = result.get(timeout=10)
+            except multiprocess.context.TimeoutError:
+                output = "Timeout error - do you have an infinite loop?"
+            except Exception as e:
+                output = "Runtime error: {}".format(e)
+            await sent.edit(content="```{}```".format(output or "(no output to stdout)"))
     
     def run(self):
         token = os.getenv("TOKEN")
