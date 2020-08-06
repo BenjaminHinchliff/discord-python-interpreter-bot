@@ -4,12 +4,17 @@ async-timeout==3.0.1
 attrs==19.3.0
 chardet==3.0.4
 colorama==0.4.3
+dill==0.3.2
 discord.py==1.4.0
 idna==2.10
 isort==4.3.21
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
 multidict==4.7.6
+multiprocess==0.70.10
+pathos==0.2.6
+pox==0.2.8
+ppft==1.6.6.2
 pylint==2.5.3
 python-dotenv==0.14.0
 RestrictedPython==5.0
