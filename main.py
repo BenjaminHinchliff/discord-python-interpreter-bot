@@ -5,6 +5,7 @@ import re
 import dotenv
 import discord
 from discord.ext import commands
+import RestrictedPython
 from RestrictedPython import compile_restricted, safe_builtins
 from RestrictedPython.PrintCollector import PrintCollector
 
@@ -17,7 +18,14 @@ def interpret(code):
         filename="<string>",
         mode="exec",
     )
-    data = { "_print_": PrintCollector, "__builtins__": safe_builtins }
+    data = { 
+        "_print_": PrintCollector,
+        "__builtins__": {
+            **safe_builtins,
+            "_getiter_": RestrictedPython.Eval.default_guarded_getiter,
+            "_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence
+        }
+    }
     exec(byte_code, data, None)
     return data["results"]
 
