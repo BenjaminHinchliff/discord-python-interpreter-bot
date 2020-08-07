@@ -14,6 +14,7 @@ from RestrictedPython.PrintCollector import PrintCollector
 dotenv.load_dotenv()
 
 def interpret(code):
+    """Interprets the given python code inside a safe execution environment"""
     code += "\nresults = printed"
     byte_code = compile_restricted(
         code,
@@ -43,8 +44,11 @@ class InterpreterBot(discord.Client):
         command_str = ">>"
         content = message.content
         if content.startswith(command_str):
+            # remove the command prefix itself and (maybe) a space
             source = re.sub(r"{} ?".format(command_str), "", content, 1)
+            # remove code markers so code boxes work with this "beautiful" regex
             source = re.sub(r"(?:^\"?`(?:`{2}(?:[a-zA-Z+]*)?)?\n?|\n?`(?:`{2})?\"?$)", "", source)
+            # log output to help debugging on failure
             print("Executed {}".format(repr(source)))
             sent = await message.channel.send("running code...")
             result = self.pool.apipe(interpret, source)
