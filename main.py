@@ -47,7 +47,7 @@ class InterpreterBot(discord.Client):
             # remove the command prefix itself and (maybe) a space
             source = re.sub(r"{} ?".format(command_str), "", content, 1)
             # remove code markers so code boxes work with this "beautiful" regex
-            source = re.sub(r"(?:^\"?`(?:`{2}(?:[a-zA-Z+]*)?)?\n?|\n?`(?:`{2})?\"?$)", "", source)
+            source = re.sub(r"(^`{1,3}(py(thon)?)?|`{1,3}$)", "", source)
             # log output to help debugging on failure
             print("Executed {}".format(repr(source)))
             sent = await message.channel.send("running code...")
