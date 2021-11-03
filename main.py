@@ -8,7 +8,7 @@ import dotenv
 import discord
 from discord.ext import commands
 import RestrictedPython
-from RestrictedPython import compile_restricted, utility_builtins
+from RestrictedPython import compile_restricted, limited_builtins, safe_builtins, utility_builtins
 from RestrictedPython.PrintCollector import PrintCollector
 
 dotenv.load_dotenv()
@@ -24,6 +24,8 @@ def interpret(code):
     data = { 
         "_print_": PrintCollector,
         "__builtins__": {
+            **limited_builtins,
+            **safe_builtins,
             **utility_builtins,
             "all": all,
             "any": any,
