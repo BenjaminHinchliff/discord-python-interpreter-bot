@@ -62,7 +62,7 @@ class InterpreterBot(discord.Client):
                 output = "Timeout error - do you have an infinite loop?"
             except Exception as e:
                 output = "Runtime error: {}".format(e)
-            await sent.edit(content="```{}```".format(output or "(no output to stdout)"))
+            await sent.edit(content="```\n{}```".format(output or "(no output to stdout)"))
     
     def run(self):
         token = os.getenv("TOKEN")
